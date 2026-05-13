@@ -6,30 +6,67 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   pipeline:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       # 1. Checkout
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Build Docker image locally (for Trivy scan)
-      # Docker will handle npm install and build internally
-      - name: Build Docker Image
-        run: docker build -t cicd-pipeline-demo:latest .
+      # 2. Set up Docker Buildx (for efficient multi-platform builds)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      # 3. Trivy security scan — FAILS if HIGH/CRITICAL CVEs found
+      # 3. Login to GitHub Container Registry
+      - name: Log in to Container Registry
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 4. Build and push Docker image to GHCR
+      - name: Build and Push Docker Image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # 5. Build locally for Trivy scan (PR builds only)
+      - name: Build Docker Image for Scan
+        if: github.event_name == 'pull_request'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: cicd-pipeline-demo:latest
+          cache-from: type=gha
+
+      # 6. Trivy security scan
       - name: Trivy Security Scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: cicd-pipeline-demo:latest
+          image-ref: ${{ github.event_name == 'push' && format('{0}/{1}:latest', env.REGISTRY, env.IMAGE_NAME) || 'cicd-pipeline-demo:latest' }}
           format: table
           exit-code: 0
           severity: HIGH,CRITICAL
 
-      # 4. Deploy to Render.com (Render pulls from GitHub and builds itself)
+      # 7. Deploy to Render (only on main branch push after successful build/scan)
       - name: Deploy to Render
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
