@@ -1,7 +1,10 @@
 # Stage 1: Build
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
+
+# Update base packages to fix security vulnerabilities
+RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
 
 COPY package*.json ./
 RUN npm ci --only=production
@@ -9,7 +12,10 @@ RUN npm ci --only=production
 COPY src/ ./src/
 
 # Stage 2: Production image (minimal)
-FROM node:18-alpine
+FROM node:22-alpine
+
+# Update base packages to fix security vulnerabilities
+RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
 
 # Security: run as non-root user
 RUN addgroup -g 1001 -S appgroup && \
