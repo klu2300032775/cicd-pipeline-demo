@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: cicd-pipeline-demo
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: APP_VERSION
+        value: 1.0.0
