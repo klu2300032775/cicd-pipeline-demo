@@ -15,25 +15,23 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Install dependencies
-      - name: Install Dependencies
-        run: npm install --only=production
-
-      # 3. Build Docker image locally (for Trivy scan)
+      # 2. Build Docker image locally (for Trivy scan)
+      # Docker will handle npm install and build internally
       - name: Build Docker Image
         run: docker build -t cicd-pipeline-demo:latest .
 
-      # 4. Trivy security scan — FAILS if HIGH/CRITICAL CVEs found
+      # 3. Trivy security scan — FAILS if HIGH/CRITICAL CVEs found
       - name: Trivy Security Scan
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: cicd-pipeline-demo:latest
           format: table
-          exit-code: 0
+          exit-code: 1
           severity: HIGH,CRITICAL
 
-      # 5. Deploy to Render.com (Render pulls from GitHub and builds itself)
+      # 4. Deploy to Render.com (Render pulls from GitHub and builds itself)
       - name: Deploy to Render
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \

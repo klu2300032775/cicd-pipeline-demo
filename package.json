@@ -1,17 +1,21 @@
 {
-  "name": "cicd-pipeline-demo",
+  "name": "todo-app",
   "version": "1.0.0",
-  "description": "Secure CI/CD Pipeline Demo using Docker, Jenkins and Trivy",
-  "main": "src/index.js",
+  "description": "A simple To-Do List application built with React and Vite",
+  "type": "module",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "test": "echo 'No tests yet' && exit 0"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "npm run build && node server.js"
   },
   "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "express": "^4.21.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.8"
   }
 }
