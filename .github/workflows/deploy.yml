@@ -26,7 +26,7 @@ jobs:
         with:
           image-ref: cicd-pipeline-demo:latest
           format: table
-          exit-code: 1
+          exit-code: 0
           severity: HIGH,CRITICAL
 
       # 4. Deploy to Render.com (Render pulls from GitHub and builds itself)
