@@ -38,7 +38,7 @@ export default function App() {
     <div className="app">
       <div className="container">
         <header className="header">
-          <h1>📝 My To-Do List</h1>
+          <h1>📝  Saandeep WorkSpace </h1>
           <p className="subtitle">Stay organized and productive</p>
         </header>
 
