@@ -17,7 +17,7 @@ jobs:
 
       # 2. Install dependencies
       - name: Install Dependencies
-        run: npm ci --only=production
+        run: npm install --only=production
 
       # 3. Build Docker image locally (for Trivy scan)
       - name: Build Docker Image
